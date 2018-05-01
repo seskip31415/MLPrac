@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Apr 28 14:23:02 2018
+
+@author: sophieskipper
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd 
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.linear_model import LinearRegression
+from matplotlib import cm
+from matplotlib import rc
+from matplotlib.colors import LogNorm
+def WarmUpExercise():    
+    A = np.identity(5)
+    print(A)
+
+data = np.loadtxt('ex1data1.txt', delimiter = ',')
+print(data)
+X = np.c_[data[:,0]]
+Y = np.c_[data[:,1]]
+plt.scatter(X,Y, c = 'r', marker = 'x')
+plt.xlabel('Population of City in 10,000s')
+plt.ylabel('Profit in $10,000s')
+
+
+X = np.hstack((np.ones((X.size,1)), X))
+theta = np.zeros((2,1))
+def CostFunction(X,Y,theta):
+    m = len(Y)
+    h = np.dot(X, theta)
+    J = (1 /(2*m) ) * np.sum(np.square(h - Y))
+    return(J) 
+print('Computing Cost for theta = 0 {}'.format(CostFunction(X,Y,theta = np.zeros((2,1)))))
+
+num_iters = 1500
+alpha  = 0.01
+
+def GradientDescent(X,Y,theta,alpha,num_iters):
+    J_history = np.zeros(num_iters)
+    theta = np.zeros((2,1))
+    for i in range(0,num_iters):
+        m = len(Y)
+        h = np.dot(X,theta)
+        theta = theta  - (alpha / m) * np.dot(np.transpose(X),(h-Y))
+        J_history[i] = CostFunction(X,Y,theta)
+    return(theta, J_history)
+theta, J_history = GradientDescent(X,Y,theta,alpha,num_iters)
+
+#plot training set with 
+
+plt.plot(X[:,1], np.matmul(X,theta))
+
+plt.show()
+
+#Test theta
+predict1 = np.dot([1,3.5],theta)
+predict2 = np.dot([1,7],theta)
+print('Test 1 : J = {0}, Test 2: J = {1}'.format(predict1*10000,predict2*10000))
+#Visualizing J 
+
+theta0_vals = np.linspace(-10,10,100)
+theta1_vals = np.linspace(-1,4,100)
+
+J_vals = np.zeros((len(theta0_vals), len(theta1_vals)))
+r1 = range(0,len(theta0_vals))
+r2 = range(0,len(theta1_vals))
+for i in r1:
+    for j in r2:
+        t = np.array([theta0_vals[i], theta1_vals[j]])
+        J_vals[i,j] = computeCost(X,Y,t) 
+#take transpose of cost function 
+transJ = np.transpose(J_vals) 
+#meshgrid to ensure regular grid for x,y values
+x,y = np.meshgrid(theta0_vals,theta1_vals,indexing='xy')
+fig = plt.figure()
+ax = plt.subplot(122,projection='3d')
+
+ax.plot_surface(x,y,J_vals,cmap=plt.cm.jet)
+ax.set_xlabel(r"$\theta_0$")
+ax.set_ylabel(r"$\theta_1$")
+ax.set_zlabel(r"Cost Function")
+plt.show()
+level = np.logspace(-2,3,20)
+print(level)
+axcon = fig.add_subplot(122)
+axcon.contour(x,y,J_vals,level, cmap=plt.cm.jet,norm = LogNorm())
+
+#plot centre point 
+axcon.scatter(theta[0],theta[1], c='r')
+plt.show()

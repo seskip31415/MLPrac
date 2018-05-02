@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Wed May  2 12:31:48 2018
+
+@author: 
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Sat Apr 28 14:23:02 2018
 
-@author
+@author: 
 """
 
 import matplotlib.pyplot as plt
@@ -84,11 +92,80 @@ ax.set_xlabel(r"$\theta_0$")
 ax.set_ylabel(r"$\theta_1$")
 ax.set_zlabel(r"Cost Function")
 plt.show()
-level = np.logspace(-2,3,20)
-print(level)
+level = np.logspace(-2,3,15)
+'''
 axcon = fig.add_subplot(122)
 axcon.contour(x,y,J_vals,level, cmap=plt.cm.jet,norm = LogNorm())
 
 #plot centre point 
 axcon.scatter(theta[0],theta[1], c='r')
 plt.show()
+'''
+data2 = np.loadtxt('ex1data2.txt', delimiter = ',')
+print(data2)
+#each column of X2 is a 
+X2 = np.c_[data2[:,0:2]]
+Y2 = np.c_[data2[:,2]]
+m = len(Y2)
+print('First ten values of X,Y, x: {0}, y : {1}'.format(X2[0:10,:], Y2[1:10,:]))
+
+def featureNormalise(X):
+    X_norm = np.zeros((X.shape))
+    x,y = X.shape
+    mu = np.zeros((1,y))
+    sigma = np.zeros((1,y))
+    
+    for i in range(y):
+        mu[0,i] = np.mean(X[:,i])
+        sigma[0,i] = np.std(X[:,i])
+        for j in range(x):
+            X_norm[j,i] = (X[j,i] - mu[0,i]) / (sigma[0,i])
+        
+
+    return mu,sigma,X_norm
+mu, sigma, X =  featureNormalise(X2)
+
+X = np.hstack((np.ones((X.shape[0],1)), X))
+alpha = 0.01
+num_iters = 400
+#set theta dependent of number of features
+
+theta = np.zeros((X.shape[1],1))
+
+def computeCostMulti(X,Y,theta):
+    m = len(Y)
+    h = np.dot(X, theta)
+    J = (1 /(2*m) ) * np.sum(np.square(h - Y))
+    return(J)
+
+J = computeCostMulti(X,Y2,theta) 
+def gradientDescent(X,Y,theta, alpha, num_iters):
+    m = len(Y)
+    J_hist = np.zeros((num_iters,1))
+    for i in range(0,num_iters):
+        m = len(Y)
+        h = np.dot(X,theta)
+        theta = theta  - (alpha / m) * np.dot(np.transpose(X),(h-Y))
+        J_hist[i] = computeCostMulti(X,Y,theta)
+    return(J_hist,theta, h_grad)
+J_cost,theta_grad,h_grad = gradientDescent(X,Y2,theta, alpha, num_iters)
+#prediction for 1650 sq ft and 
+predict3 = np.dot([1,1.65,3],theta_grad)
+print('Predicted price of a 1650 sq-ft, 3 br house {}'.format(predict3))
+
+
+#Solving using the normal equation
+
+def NormalEquation(X,Y):
+    
+    X_1 = np.linalg.pinv(np.matmul(X.T,X))
+    X_2 = np.matmul(X.T,Y)
+    theta = np.matmul(X_1,X_2)
+    return(theta)
+theta_norm = NormalEquation(X,Y2)
+predict4 = np.dot([1,1.65,3],theta_norm)
+print('Predicted price of a 1650 sq-ft, 3 br house {}'.format(predict4))
+
+
+    
+    
